@@ -1,5 +1,6 @@
 const { Schema, model } = require('mongoose');
 const { Gender } = require('../config/constant');
+const gravatar = require('gravatar');
 const bcrypt = require('bcryptjs');
 const SALT_FACTOR = 6;
 
@@ -39,7 +40,15 @@ const userSchema = new Schema(
             type: String,
             default: null,
         },
+        avatar: {
+            type: String,
+            default: function () {
+                return gravatar.url(this.email, { s: '250' }, true);
+            },
+        },
+        idUserCloud: { type: String, default: null },
     },
+
     {
         versionKey: false,
         timestamps: true,
@@ -57,7 +66,7 @@ const userSchema = new Schema(
 userSchema.pre('save', async function (next) {
     if (this.isModified('password')) {
         const salt = await bcrypt.genSalt(SALT_FACTOR);
-        this.password = await bcrypt.hash(this.password, salt);
+        this.password = await bcrypt.hash(this.password, salt); //*  // шифруем пароль, превращаем в хеш
     }
     next();
 });
